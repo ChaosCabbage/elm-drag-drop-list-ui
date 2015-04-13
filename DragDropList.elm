@@ -30,7 +30,7 @@ dragPadElement : Element
 dragPadElement = spacer 30 40 |> color Color.black
 
 dragPad id =
-  let action hovering = Debug.watch "hover" <| 
+  let action hovering = Debug.watch "hover" <|
     case hovering of
       True -> Just id
       False -> Nothing
@@ -63,11 +63,20 @@ listElements model =
   in
     List.map (flow right) <| listWithDragpads model.list
 
-insertionPoints model =
+itemYPositions model =
   let gapHeight = heightOf model.gap
       heightOfElement e = (heightOf e) + gapHeight
       heights = List.map heightOfElement model.list
   in List.take (List.length heights) (List.scanl (+) 0 heights)
+
+itemYPosition : Model -> Int -> Int
+itemYPosition model id =
+    List.head (List.drop id (itemYPositions model))
+
+insertionPoints model =
+  let points = itemYPositions model
+      halfHeights = List.map (\el -> (heightOf el // 2)) model.list
+  in List.map2 (+) points halfHeights
 
 drawInsertionPoints model =
   let points = insertionPoints model |> Debug.watch "insertion points"
@@ -84,11 +93,6 @@ drawInsertionPoints model =
     ++
     [rect 100 (toFloat h) |> filled Color.orange |> alpha 0.4]
   )
-
-
-itemYPosition : Model -> Int -> Int
-itemYPosition model id =
-  List.head (List.drop id (insertionPoints model))
 
 currentInsertionPoint : Model -> Int -> Int -> Int
 currentInsertionPoint model gapId yOffset =
